@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Setup Google Maps API Key</title>
+  <script type="module">
+    import { projectId, publicAnonKey } from '/utils/supabase/info';
+
+    async function setupKey() {
+      const apiKey = 'AIzaSyB3LdYqd44err5tEl3a-Rgvy29ZqM194mE';
+      
+      try {
+        // First, get current settings
+        const getResponse = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-2f1627d1/api/settings`,
+          {
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`
+            }
+          }
+        );
+        
+        const currentSettings = await getResponse.json();
+        console.log('Current settings:', currentSettings);
+        
+        // Update with Google Maps key
+        const updateResponse = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-2f1627d1/api/settings`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${publicAnonKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ...currentSettings,
+              google_maps_api_key: apiKey
+            })
+          }
+        );
+        
+        const result = await updateResponse.json();
+        console.log('Updated settings:', result);
+        
+        document.getElementById('status').innerHTML = `
+          <div style="padding: 20px; background: #d4edda; color: #155724; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 10px 0;">✓ Success!</h3>
+            <p style="margin: 0;">Google Maps API key has been stored in settings.</p>
+            <p style="margin: 10px 0 0 0; font-size: 12px;">Key: ${apiKey.substring(0, 20)}...</p>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = `
+          <div style="padding: 20px; background: #f8d7da; color: #721c24; border-radius: 8px; margin-top: 20px;">
+            <h3 style="margin: 0 0 10px 0;">✗ Error</h3>
+            <p style="margin: 0;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+    
+    // Run on page load
+    window.addEventListener('DOMContentLoaded', setupKey);
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #EC6FA0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Setting up Google Maps API Key...</h1>
+  <p>This will store the Google Maps API key in your settings for the Business Opportunity Insight feature.</p>
+  <div id="status">Loading...</div>
+</body>
+</html>

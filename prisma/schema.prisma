@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole { admin }
+enum IcpStatus { draft running complete failed }
+enum LeadStatus { discovered enriched suppressed archived }
+enum EnrichmentStatus { pending complete failed }
+enum CampaignStatus { draft ready running paused completed }
+enum CampaignLeadStatus { queued active stopped completed }
+enum MessageStatus { generated approved rejected edited }
+enum SendStatus { scheduled sent failed bounced }
+enum EventType { open click reply bounce unsub }
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  businessProfile BusinessProfile?
+  icpRuns         IcpRun[]
+  leads           Lead[]
+  enrichments     LeadEnrichment[]
+  campaigns       Campaign[]
+  messages        GeneratedMessage[]
+  sends           EmailSend[]
+  events          EngagementEvent[]
+  suppressions    Suppression[]
+  credits         CreditLedger[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  fullName     String?
+  role         UserRole @default(admin)
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BusinessProfile {
+  id            String   @id @default(uuid())
+  workspaceId   String   @unique
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  companyName   String
+  industry      String?
+  services      Json     @default("[]")
+  painPoints    Json     @default("[]")
+  idealCustomer String?
+  outreachTone  String   @default("consultative")
+  extraContext  Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model IcpRun {
+  id              String   @id @default(uuid())
+  workspaceId     String
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name            String?
+  filters         Json
+  status          IcpStatus @default(draft)
+  discoveredCount Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  leads Lead[]
+}
+
+model Lead {
+  id            String   @id @default(uuid())
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  icpRunId      String?
+  icpRun        IcpRun?   @relation(fields: [icpRunId], references: [id], onDelete: SetNull)
+
+  status        LeadStatus @default(discovered)
+  firstName     String?
+  lastName      String?
+  title         String?
+  linkedinUrl   String?
+  companyName   String?
+  companyDomain String?
+  companySize   String?
+  industry      String?
+  city          String?
+  state         String?
+  country       String?
+
+  discoveryData Json   @default("{}")
+  dedupeKey     String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  enrichment     LeadEnrichment?
+  campaignLeads  CampaignLead[]
+  messages       GeneratedMessage[]
+  sends          EmailSend[]
+  events         EngagementEvent[]
+
+  @@unique([workspaceId, dedupeKey])
+  @@index([workspaceId])
+  @@index([icpRunId])
+  @@index([status])
+}
+
+model LeadEnrichment {
+  id            String   @id @default(uuid())
+  leadId        String   @unique
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  workspaceId   String
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  status        EnrichmentStatus @default(pending)
+  email         String?
+  phone         String?
+  mobile        String?
+  companyAddress Json @default("{}")
+  companyDetails Json @default("{}")
+  provider      String?
+  raw           Json @default("{}")
+  enrichedAt    DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model CreditLedger {
+  id          String   @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  kind        String   // topup|debit|adjust
+  amount      Int
+  reason      String?
+  refTable    String?
+  refId       String?
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+}
+
+model Campaign {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name         String
+  goal         String?  // NEW: Campaign goal/objective
+  status       CampaignStatus @default(draft)
+  sendingRules Json          @default("{}")
+  startAt      DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  steps        SequenceStep[]
+  campaignLeads CampaignLead[]
+  messages     GeneratedMessage[]
+  sends        EmailSend[]
+  events       EngagementEvent[]
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model SequenceStep {
+  id          String   @id @default(uuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  stepOrder   Int
+  delayDays   Int      @default(0)
+  subjectTemplate String?
+  bodyTemplate    String?
+  aiInstructions  String?  // NEW: AI personalization instructions
+
+  createdAt   DateTime @default(now())
+
+  messages GeneratedMessage[]
+  sends    EmailSend[]
+
+  @@unique([campaignId, stepOrder])
+}
+
+model CampaignLead {
+  id          String   @id @default(uuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  status      CampaignLeadStatus @default(queued)
+  currentStepOrder Int?  // NEW: Track which step (1,2,3) the lead is on
+  nextScheduledDate DateTime?  // NEW: When to send next email
+  stopReason  String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([campaignId, leadId])
+  @@index([nextScheduledDate])  // NEW: Index for cron job queries
+}
+
+model GeneratedMessage {
+  id          String   @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  stepId      String
+  step        SequenceStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  subject     String?
+  body        String?
+  status      MessageStatus @default(generated)
+  meta        Json          @default("{}")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sends EmailSend[]
+
+  @@unique([campaignId, leadId, stepId])
+  @@index([workspaceId])
+}
+
+model EmailSend {
+  id          String   @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  stepId      String
+  step        SequenceStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  generatedMessageId String?
+  generatedMessage   GeneratedMessage? @relation(fields: [generatedMessageId], references: [id], onDelete: SetNull)
+
+  toEmail      String
+  status       SendStatus @default(scheduled)
+  scheduledFor DateTime
+  sentAt       DateTime?
+  providerMessageId String?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  events EngagementEvent[]
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model EngagementEvent {
+  id          String   @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  campaignId  String?
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  leadId      String?
+  lead        Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  emailSendId String?
+  emailSend   EmailSend? @relation(fields: [emailSendId], references: [id], onDelete: SetNull)
+
+  type        EventType
+  occurredAt  DateTime @default(now())
+  payload     Json     @default("{}")
+}
+
+model Suppression {
+  id          String   @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  email       String?
+  domain      String?
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+}
