@@ -8,8 +8,17 @@ import {
   MessageGenerationPreview, 
   PerplexityResearchPreview 
 } from "@/app/components/marketing/FeaturePreviewComponents";
+import { useNavigate } from "react-router";
 
-export function FeaturesPage({ onNav }: { onNav: (key: string) => void }) {
+export function FeaturesPage({ onNav }: { onNav?: (key: string) => void }) {
+  const navigate = useNavigate();
+  const handleNav = onNav || ((key: string) => {
+    if (key === "landing" || key === "features" || key === "pricing") {
+      navigate(`/${key === "landing" ? "" : key}`);
+    } else {
+      navigate("/app/");
+    }
+  });
   const features = [
     {
       icon: Sparkles,
@@ -94,12 +103,12 @@ export function FeaturesPage({ onNav }: { onNav: (key: string) => void }) {
   ];
 
   return (
-    <AppShell title="Features" active="features" onNav={onNav}>
+    <AppShell title="Features" active="features" onNav={handleNav}>
       <div className="min-h-screen bg-white -mx-6 lg:-mx-8 -my-6">
       {/* Hero */}
       <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
-          <button onClick={() => onNav("landing")} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-8">
+          <button onClick={() => handleNav("landing")} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-8">
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </button>
@@ -178,7 +187,7 @@ export function FeaturesPage({ onNav }: { onNav: (key: string) => void }) {
             These aren't theoretical features. They're live, running, and ready to use.
           </p>
           <button
-            onClick={() => onNav("dashboard")}
+            onClick={() => navigate("/auth")}
             className="inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white text-lg font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all"
           >
             Access Dashboard
@@ -196,14 +205,14 @@ export function FeaturesPage({ onNav }: { onNav: (key: string) => void }) {
               <span className="font-bold text-gray-900">ProspectAI</span>
             </div>
             <div className="flex items-center gap-6">
-              <button onClick={() => onNav("features")} className="text-sm text-[#E64B8B] font-semibold">
+              <button onClick={() => handleNav("features")} className="text-sm text-[#E64B8B] font-semibold">
                 Features
               </button>
-              <button onClick={() => onNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <button onClick={() => handleNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                 Pricing
               </button>
               <button
-                onClick={() => onNav("dashboard")}
+                onClick={() => navigate("/auth")}
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Dashboard

@@ -17,6 +17,7 @@ import { LandingPage } from "@/app/marketing/LandingPage";
 import { FeaturesPage } from "@/app/marketing/FeaturesPage";
 import { PricingPage } from "@/app/marketing/PricingPage";
 import { BackendStatus } from "@/app/components/BackendStatus";
+import { OrganizationPage } from "@/app/pages/OrganizationPage";
 
 type Screen =
   | "dashboard"
@@ -33,6 +34,7 @@ type Screen =
   | "migration-sql"
   | "admin"
   | "know-how"
+  | "organization"
   | "landing"
   | "features"
   | "pricing";
@@ -146,6 +148,7 @@ export default function App() {
       )}
       {screen === "settings" && <SettingsPage onNav={handleNav} />}
       {screen === "migration-sql" && <MigrationSQLPage onNav={handleNav} />}
+      {screen === "organization" && <OrganizationPage onNav={handleNav} />}
       {screen === "admin" && <AdminPage onNav={handleNav} />}
       {screen === "know-how" && <KnowHowPage onNav={handleNav} />}
       {screen === "landing" && <LandingPage onNav={handleNav} />}

@@ -1,8 +1,17 @@
 import React from "react";
 import { ArrowLeft, Check, ArrowRight } from "lucide-react";
 import { AppShell } from "@/app/components/AppShell";
+import { useNavigate } from "react-router";
 
-export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
+export function PricingPage({ onNav }: { onNav?: (key: string) => void }) {
+  const navigate = useNavigate();
+  const handleNav = onNav || ((key: string) => {
+    if (key === "landing" || key === "features" || key === "pricing") {
+      navigate(`/${key === "landing" ? "" : key}`);
+    } else {
+      navigate("/app/");
+    }
+  });
   const plans = [
     {
       name: "Starter",
@@ -53,12 +62,12 @@ export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
   ];
 
   return (
-    <AppShell title="Pricing" active="pricing" onNav={onNav}>
+    <AppShell title="Pricing" active="pricing" onNav={handleNav}>
       <div className="min-h-screen bg-white -mx-6 lg:-mx-8 -my-6">
       {/* Hero */}
       <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
-          <button onClick={() => onNav("landing")} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-8">
+          <button onClick={() => handleNav("landing")} className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-8">
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </button>
@@ -116,7 +125,7 @@ export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
                 </div>
                 
                 <button
-                  onClick={() => onNav("dashboard")}
+                  onClick={() => navigate("/auth")}
                   className={`w-full py-3 rounded-xl font-semibold transition-all ${
                     plan.popular
                       ? "bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white hover:shadow-lg"
@@ -138,7 +147,7 @@ export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
               We work with enterprise teams to build custom AI workflows, integrations, and training programs.
             </p>
             <button
-              onClick={() => onNav("dashboard")}
+              onClick={() => navigate("/auth")}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white font-semibold rounded-lg hover:shadow-lg transition-all"
             >
               Talk to Sales
@@ -205,7 +214,7 @@ export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
             Try the admin dashboard now. See what AI can do for your pipeline.
           </p>
           <button
-            onClick={() => onNav("dashboard")}
+            onClick={() => navigate("/auth")}
             className="px-10 py-5 bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white text-lg font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all"
           >
             Access Dashboard
@@ -222,14 +231,14 @@ export function PricingPage({ onNav }: { onNav: (key: string) => void }) {
               <span className="font-bold text-gray-900">ProspectAI</span>
             </div>
             <div className="flex items-center gap-6">
-              <button onClick={() => onNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <button onClick={() => handleNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </button>
-              <button onClick={() => onNav("pricing")} className="text-sm text-[#E64B8B] font-semibold">
+              <button onClick={() => handleNav("pricing")} className="text-sm text-[#E64B8B] font-semibold">
                 Pricing
               </button>
               <button
-                onClick={() => onNav("dashboard")}
+                onClick={() => navigate("/auth")}
                 className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Dashboard

@@ -1,7 +1,8 @@
 import React from "react";
-import { Home, Users, Send, Settings, BarChart3, Bookmark, Building2, Shield, Brain, Globe, Star, DollarSign } from "lucide-react";
+import { Home, Users, Send, Settings, BarChart3, Bookmark, Building2, Shield, Brain, Globe, Star, DollarSign, LogOut } from "lucide-react";
 import { projectId, publicAnonKey } from "/utils/supabase/info";
 import { Api } from "@/lib/api";
+import { useAuth } from "@/app/context/AuthContext";
 
 export function AppShell({
   title,
@@ -10,10 +11,14 @@ export function AppShell({
   children,
 }: {
   title: string;
-  active: "leads" | "campaigns" | "messages" | "dashboard" | "profile" | "icp" | "saved-searches" | "settings" | "admin" | "know-how" | "landing" | "features" | "pricing";
-  onNav: (key: any) => void;
+  active: "leads" | "campaigns" | "messages" | "dashboard" | "profile" | "icp" | "saved-searches" | "settings" | "admin" | "know-how" | "landing" | "features" | "pricing" | "organization";
+  onNav: (key: string, data?: any) => void;
   children: React.ReactNode;
 }) {
+  const { user, signOut } = useAuth();
+  const displayName = user?.user_metadata?.full_name || user?.email || "User";
+  const initial = displayName.charAt(0).toUpperCase();
+
   const [creditBalance, setCreditBalance] = React.useState<number | null>(null);
   const [backendStatus, setBackendStatus] = React.useState<'checking' | 'ok' | 'error'>('checking');
 
@@ -47,6 +52,7 @@ export function AppShell({
     { key: "saved-searches", label: "Saved Searches", icon: Bookmark },
     { key: "leads", label: "Leads", icon: Users },
     { key: "campaigns", label: "Campaigns", icon: Send },
+    { key: "organization", label: "Organization", icon: Building2 },
     { key: "settings", label: "Settings", icon: Settings },
     { key: "know-how", label: "Know How", icon: Brain },
     { key: "landing", label: "Landing Page", icon: Globe },
@@ -106,11 +112,21 @@ export function AppShell({
 
             {/* User Section */}
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-gray-200/60 bg-gradient-to-br from-gray-50 to-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl border border-gray-200/60 bg-gradient-to-br from-gray-50 to-white shadow-sm">
                 <div className="w-8 h-8 bg-gradient-to-br from-[#E64B8B] to-[#C93B75] rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-pink-500/30">
-                  A
+                  {initial}
                 </div>
-                <span className="text-sm font-semibold text-gray-900">Admin</span>
+                <span className="text-sm font-semibold text-gray-900 max-w-[120px] truncate">{displayName}</span>
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    window.location.href = "/";
+                  }}
+                  title="Sign out"
+                  className="ml-1 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

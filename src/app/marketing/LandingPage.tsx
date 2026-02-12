@@ -1,10 +1,19 @@
 import React from "react";
 import { ArrowRight, Sparkles, Target, Brain, Zap, Mail } from "lucide-react";
 import { AppShell } from "@/app/components/AppShell";
+import { useNavigate } from "react-router";
 
-export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
+export function LandingPage({ onNav }: { onNav?: (key: string) => void }) {
+  const navigate = useNavigate();
+  const handleNav = onNav || ((key: string) => {
+    if (key === "landing" || key === "features" || key === "pricing") {
+      navigate(`/${key === "landing" ? "" : key}`);
+    } else {
+      navigate("/app/");
+    }
+  });
   return (
-    <AppShell title="Marketing Website" active="landing" onNav={onNav}>
+    <AppShell title="Marketing Website" active="landing" onNav={handleNav}>
       <div className="min-h-screen bg-white -mx-6 lg:-mx-8 -my-6">
         {/* Navigation */}
         <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -16,14 +25,14 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
               </div>
               
               <div className="flex items-center gap-6">
-                <button onClick={() => onNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <button onClick={() => handleNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Features
                 </button>
-                <button onClick={() => onNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <button onClick={() => handleNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Pricing
                 </button>
                 <button
-                  onClick={() => onNav("dashboard")}
+                  onClick={() => navigate("/auth")}
                   className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Dashboard
@@ -59,7 +68,7 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
-                    onClick={() => onNav("dashboard")}
+                    onClick={() => navigate("/auth")}
                     className="group px-8 py-4 bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
                   >
                     Get Started
@@ -67,7 +76,7 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
                   </button>
                   
                   <button
-                    onClick={() => onNav("features")}
+                    onClick={() => handleNav("features")}
                     className="px-8 py-4 bg-gray-100 text-gray-900 font-semibold rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
                   >
                     See How It Works
@@ -213,7 +222,7 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
 
             <div className="text-center mt-12">
               <button
-                onClick={() => onNav("features")}
+                onClick={() => handleNav("features")}
                 className="inline-flex items-center gap-2 text-[#E64B8B] font-semibold hover:gap-4 transition-all"
               >
                 Explore all 5 AI features
@@ -233,7 +242,7 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
               Join forward-thinking sales teams using AI to win faster.
             </p>
             <button
-              onClick={() => onNav("dashboard")}
+              onClick={() => navigate("/auth")}
               className="px-10 py-5 bg-gradient-to-r from-[#E64B8B] to-[#d43d7a] text-white text-lg font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all"
             >
               Start Using ProspectAI
@@ -250,14 +259,14 @@ export function LandingPage({ onNav }: { onNav: (key: string) => void }) {
                 <span className="font-bold text-gray-900">ProspectAI</span>
               </div>
               <div className="flex items-center gap-6">
-                <button onClick={() => onNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <button onClick={() => handleNav("features")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Features
                 </button>
-                <button onClick={() => onNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <button onClick={() => handleNav("pricing")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Pricing
                 </button>
                 <button
-                  onClick={() => onNav("dashboard")}
+                  onClick={() => navigate("/auth")}
                   className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Dashboard
